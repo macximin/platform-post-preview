@@ -135,6 +135,10 @@ def quotes(t):
     return out
 
 
+def split_tags(value):
+    return [x.strip().lstrip("#") for x in re.split(r"[,/|]", value or "") if x.strip()]
+
+
 def _sig(slug):
     d = CHARS_DIR / slug
     fs = [d / "canon.md"] + sorted((d / "images").glob("*"))
@@ -164,6 +168,7 @@ def load_char(slug, sig):
         "story": sect(sc, "스토리 개요"),
         "interests": bullets(sect(sc, "관심사")),
         "hobbies": bullets(sect(sc, "취미")),
+        "hashtags": split_tags(fm.get("hashtags", "")),
         "says": quotes(sect(sc, "좋아하는 말")),
         "ideal": sect(sc, "이상형"),
         "main": {"path": str(main), "mtime": int(main.stat().st_mtime)} if main.exists() else None,
@@ -212,6 +217,7 @@ def placeholder_char(option):
         "story": "",
         "interests": [],
         "hobbies": [],
+        "hashtags": [],
         "says": [],
         "ideal": "",
         "main": None,
@@ -280,7 +286,7 @@ def render_home(char):
         f'<div style="position:absolute;left:14px;bottom:12px;background:{ACCENT};color:#fff;'
         'padding:6px 16px;border-radius:999px;font-size:0.8rem;font-weight:600;">대화 미리보기</div></div>'
     )
-    hashtags = ["#" + x.replace(" ", "") for x in (char["interests"] + char["hobbies"])][:4]
+    hashtags = ["#" + x.replace(" ", "") for x in (char["hashtags"] + char["interests"] + char["hobbies"])][:5]
     tagline = " ".join(f'<span style="color:#5a8fd6;">{esc(t)}</span>' for t in hashtags)
     hook = (char["intro"].split(".")[0] if char["intro"] else char["concept"])
     card = (
