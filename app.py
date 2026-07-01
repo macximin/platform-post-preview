@@ -39,6 +39,15 @@ CHARS_DIR = Path(__file__).resolve().parent / "characters"
 DEMO_FOLLOWERS = "2.1만"   # canon에 없는 데모 수치 (프리뷰용)
 DEMO_FOLLOWING = "187"
 
+COMING_SOON_CHARS = [
+    {"slug": "awkward-actress", "name": "예쁜데 못 뜬 배우"},
+    {"slug": "engineering-areumi", "name": "공대 아름이"},
+    {"slug": "ex-before-wedding", "name": "정서아"},
+    {"slug": "gomshin-leave-night", "name": "휴가 나온 남친을 만나 주는 곰신"},
+    {"slug": "room-gamer-girl", "name": "방구석 겜순이형 여성"},
+    {"slug": "secret-account-senior", "name": "뒷계정 들킨 회사 선배"},
+]
+
 
 # ------------------------------------------------ 이미지 헬퍼
 def _prep(img: Image.Image, ratio: float) -> Image.Image:
@@ -170,6 +179,44 @@ def list_chars():
         for d in sorted(CHARS_DIR.iterdir())
         if d.is_dir() and d.name != "_TEMPLATE" and (d / "images" / "기준선.png").exists()
     ]
+
+
+def char_label(slug):
+    d = CHARS_DIR / slug
+    if not (d / "canon.md").exists():
+        return slug
+    fm, _ = parse_canon((d / "canon.md").read_text(encoding="utf-8"))
+    return fm.get("instagram_display_name") or fm.get("name") or slug
+
+
+def list_char_options():
+    ready = [{"slug": slug, "label": char_label(slug), "ready": True} for slug in list_chars()]
+    ready_slugs = {item["slug"] for item in ready}
+    waiting = [
+        {"slug": item["slug"], "label": item["name"], "ready": False}
+        for item in COMING_SOON_CHARS
+        if item["slug"] not in ready_slugs
+    ]
+    return ready + waiting
+
+
+def placeholder_char(option):
+    return {
+        "slug": option["slug"],
+        "name": option["label"],
+        "handle": "@" + option["slug"].replace("-", "_"),
+        "age": "",
+        "job": "",
+        "concept": option["label"],
+        "intro": "프리뷰 준비 중",
+        "story": "",
+        "interests": [],
+        "hobbies": [],
+        "says": [],
+        "ideal": "",
+        "main": None,
+        "posts": [],
+    }
 
 
 # ------------------------------------------------ 프레임 / 공통 조각
@@ -334,14 +381,23 @@ def render_post(char):
 
 
 # ================================================================ 상단 컨트롤 + 라우팅
-chars = list_chars()
-if not chars:
+char_options = list_char_options()
+if not char_options:
     st.error(f"`기준선.png` 이미지를 가진 캐릭터 폴더가 없습니다:\n\n`{CHARS_DIR}`")
     st.stop()
 
-default_slug = "officetel-classmate" if "officetel-classmate" in chars else chars[0]
-slug = st.selectbox("캐릭터", chars, index=chars.index(default_slug), label_visibility="collapsed")
-char = load_char(slug, _sig(slug))
+option_by_slug = {item["slug"]: item for item in char_options}
+slugs = [item["slug"] for item in char_options]
+default_slug = "officetel-classmate" if "officetel-classmate" in slugs else slugs[0]
+slug = st.selectbox(
+    "캐릭터",
+    slugs,
+    index=slugs.index(default_slug),
+    format_func=lambda key: option_by_slug[key]["label"],
+    label_visibility="collapsed",
+)
+selected_option = option_by_slug[slug]
+char = load_char(slug, _sig(slug)) if selected_option["ready"] else placeholder_char(selected_option)
 
 VIEWS = ["🏠 홈 피드", "👤 캐릭터 프로필", "🖼️ 포스트 상세"]
 st.session_state.setdefault("view_i", 0)
@@ -364,6 +420,5 @@ elif view.startswith("👤"):
 else:
     render_post(char)
 
-st.caption(
-    f"· 내부 검토용 목업 · `characters/{slug}` 데이터 로드 · 특정 서비스 UI/로고/CTA 복제 아님 · 가상 성인 캐릭터 ·"
-)
+source_note = f"`characters/{slug}` 데이터 로드" if selected_option["ready"] else f"`{selected_option['label']}` 이름만 표시"
+st.caption(f"· 내부 검토용 목업 · {source_note} · 특정 서비스 UI/로고/CTA 복제 아님 · 가상 성인 캐릭터 ·")
