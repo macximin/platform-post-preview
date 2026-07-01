@@ -140,6 +140,21 @@ def split_tags(value):
     return [x.strip().lstrip("#") for x in re.split(r"[,/|]", value or "") if x.strip()]
 
 
+def source_hashtags(fm, sections):
+    tags = split_tags(fm.get("hashtags", ""))
+    source_text = " ".join(
+        [
+            fm.get("concept_title", ""),
+            fm.get("current_state", ""),
+            sect(sections, "소개"),
+            sect(sections, "스토리 개요"),
+        ]
+    )
+    if "일찐" in source_text and "일찐" not in tags:
+        tags.append("일찐")
+    return tags
+
+
 def _sig(slug):
     d = CHARS_DIR / slug
     fs = [d / "canon.md"] + sorted((d / "images").glob("*"))
@@ -169,7 +184,7 @@ def load_char(slug, sig):
         "story": sect(sc, "스토리 개요"),
         "interests": bullets(sect(sc, "관심사")),
         "hobbies": bullets(sect(sc, "취미")),
-        "hashtags": split_tags(fm.get("hashtags", "")),
+        "hashtags": source_hashtags(fm, sc),
         "says": quotes(sect(sc, "좋아하는 말")),
         "ideal": sect(sc, "이상형"),
         "main": {"path": str(main), "mtime": int(main.stat().st_mtime)} if main.exists() else None,
