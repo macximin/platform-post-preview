@@ -17,22 +17,22 @@ streamlit run app.py
 
 ## Streamlit Community Cloud 배포
 
-1. GitHub에 **새 public repo** 생성 (예: `platform-post-preview`).
-2. 이 폴더를 push:
-   ```bash
-   git init
-   git add .
-   git commit -m "platform_post_preview public preview"
-   git branch -M main
-   git remote add origin https://github.com/<YOUR_ID>/platform-post-preview.git
-   git push -u origin main
-   ```
-3. https://share.streamlit.io → **New app** → 위 repo/브랜치 선택 → **Main file path: `app.py`** → Deploy.
-4. (선택) **Settings → Secrets** 에 아래를 넣으면 비밀번호 게이트가 켜집니다:
+현재 배포:
+
+- App: https://platform-post-preview.streamlit.app/
+- GitHub: https://github.com/macximin/platform-post-preview
+- Branch: `master`
+- Main file path: `app.py`
+
+재배포/신규 배포:
+
+1. https://share.streamlit.io → **New app** → **Deploy a public app from GitHub**.
+2. `Repository=macximin/platform-post-preview`, `Branch=master`, `Main file path=app.py` 로 배포.
+3. (선택) **Settings → Secrets** 에 아래를 넣으면 비밀번호 게이트가 켜집니다:
    ```toml
    app_password = "원하는_비밀번호"
    ```
-5. (선택) **Settings → Sharing** 에서 뷰어를 특정 이메일로 제한.
+4. (선택) **Settings → Sharing** 에서 뷰어를 특정 이메일로 제한.
 
 ## ⚠️ 공개 전 체크리스트
 
