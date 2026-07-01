@@ -39,13 +39,14 @@ CHARS_DIR = Path(__file__).resolve().parent / "characters"
 DEMO_FOLLOWERS = "2.1만"   # canon에 없는 데모 수치 (프리뷰용)
 DEMO_FOLLOWING = "187"
 
-COMING_SOON_CHARS = [
-    {"slug": "awkward-actress", "name": "예쁜데 못 뜬 배우"},
-    {"slug": "engineering-areumi", "name": "공대 아름이"},
-    {"slug": "ex-before-wedding", "name": "정서아"},
-    {"slug": "gomshin-leave-night", "name": "휴가 나온 남친을 만나 주는 곰신"},
-    {"slug": "room-gamer-girl", "name": "방구석 겜순이형 여성"},
-    {"slug": "secret-account-senior", "name": "뒷계정 들킨 회사 선배"},
+CHARACTER_MENU = [
+    {"slug": "room-gamer-girl", "label": "방구석 겜순이형 여성"},
+    {"slug": "officetel-classmate", "label": "한서연 - 오피스텔에서 다시 만난 일찐 동창"},
+    {"slug": "ex-before-wedding", "label": "결혼식 전 전여친"},
+    {"slug": "gomshin-leave-night", "label": "휴가 나온 남친을 만나 주는 곰신"},
+    {"slug": "awkward-actress", "label": "예쁜데 못 뜬 배우"},
+    {"slug": "secret-account-senior", "label": "뒷계정 들킨 회사 선배"},
+    {"slug": "engineering-areumi", "label": "공대 아름이"},
 ]
 
 
@@ -195,14 +196,14 @@ def char_label(slug):
 
 
 def list_char_options():
-    ready = [{"slug": slug, "label": char_label(slug), "ready": True} for slug in list_chars()]
-    ready_slugs = {item["slug"] for item in ready}
-    waiting = [
-        {"slug": item["slug"], "label": item["name"], "ready": False}
-        for item in COMING_SOON_CHARS
-        if item["slug"] not in ready_slugs
+    ready_slugs = set(list_chars())
+    configured_slugs = {item["slug"] for item in CHARACTER_MENU}
+    configured = [{**item, "ready": item["slug"] in ready_slugs} for item in CHARACTER_MENU]
+    extra_ready = [
+        {"slug": slug, "label": char_label(slug), "ready": True}
+        for slug in sorted(ready_slugs - configured_slugs)
     ]
-    return ready + waiting
+    return configured + extra_ready
 
 
 def placeholder_char(option):
